@@ -41,11 +41,19 @@ def user(name):
 
 @app.route('/signin',methods = ['POST','GET'])
 def signin():
-	form = NameForm()
-	if form.validate_on_submit():
-		session['name'] = form.name.data
-		return redirect(url_for('signin'))
-	return render_template('signin.html', form = form, name = session.get('name'))
+    form = NameForm()
+    if form.validate_on_submit():
+        user=User.query.filter_by(username=form.name.data).first()
+        if user is None:
+            user = User(username=form.name.data)
+            db.session.add(user)
+            session['known'] = False
+        else:
+            session['known'] = True
+        session['name'] = form.name.data
+        form.name.data = ''
+        return redirect(url_for('signin'))
+    return render_template('signin.html', form = form, name = session.get('name'), known=session.get('known',False))
 
 @app.route('/contact')
 def contact():
